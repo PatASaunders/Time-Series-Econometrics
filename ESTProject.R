@@ -34,18 +34,14 @@ Gold_Data$Close <- fillGap(Gold_Data$Close, method=c("linear"))
 
 DJI_Data <- DJI_Data[c('Date', 'Close')]
 
-#DJI_Data$Date  <- as.POSIXct(paste(DJI_Data$Date,  DJI_Data$Close),  format = "%d-%m-%d")
-#Oil_Data$Date  <- as.POSIXct(paste(Oil_Data$Date,  Oil_Data$Close),  format = "%Y-%m-%d")
-#Gold_Data$Date <- as.POSIXct(paste(Gold_Data$Date, Gold_Data$Close), format = "%Y-%m-%d")
+DJI_Data$Date  <- as.POSIXct(paste(DJI_Data$Date,  DJI_Data$Close),  format = "%Y-%m-%d")
+Oil_Data$Date  <- as.POSIXct(paste(Oil_Data$Date,  Oil_Data$Close),  format = "%Y-%m-%d")
+Gold_Data$Date <- as.POSIXct(paste(Gold_Data$Date, Gold_Data$Close), format = "%Y-%m-%d")
 
-#DJI  <- xts(x=DJI_Data$Close,  order.by = DJI_Time)
-#Oil  <- xts(x=Oil_Data$Close,  order.by = Oil_Time)
-#Gold <- xts(x=Gold_Data$Close, order.by = Gold_Time)
-
-pad(DJI_Data)
+DJI  <- xts(x=DJI_Data$Close,  order.by = DJI_Data$Date)
+Oil  <- xts(x=Oil_Data$Close,  order.by = Oil_Data$Date)
+Gold <- xts(x=Gold_Data$Close, order.by = Gold_Data$Date)
 
 chartSeries(DJI)
 chartSeries(Oil)
 chartSeries(Gold)
-
-tsibble()
