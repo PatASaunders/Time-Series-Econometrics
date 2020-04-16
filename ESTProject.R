@@ -12,6 +12,7 @@ library(readxl)
 library(tsibble)
 library(dplyr)
 library(padr)
+library(oce)
 
 DJI_Data  <- read_excel("DJI_Data.xlsx")
 Oil_Data  <- read_excel("Oil_Data.xls")
@@ -27,7 +28,11 @@ DJI_Data  <- DJI_Data  %>% pad()
 Oil_Data  <- Oil_Data  %>% pad()
 Gold_Data <- Gold_Data %>% pad()
 
-DJI_test <- DJI_Data %>% fill_by_function(fun = mean)
+DJI_Data$Close  <- fillGap(DJI_Data$Close,  method=c("linear"))
+Oil_Data$Close  <- fillGap(Oil_Data$Close,  method=c("linear"))
+Gold_Data$Close <- fillGap(Gold_Data$Close, method=c("linear"))
+
+DJI_Data <- DJI_Data[c('Date', 'Close')]
 
 #DJI_Data$Date  <- as.POSIXct(paste(DJI_Data$Date,  DJI_Data$Close),  format = "%d-%m-%d")
 #Oil_Data$Date  <- as.POSIXct(paste(Oil_Data$Date,  Oil_Data$Close),  format = "%Y-%m-%d")
