@@ -8,10 +8,11 @@ library(quantmod)
 library(scales)
 library(vars)
 library(xts)
+library(readxl)
 
-DJI_data  <- read.csv("DJI.csv", header=TRUE)
-Oil_data  <- read.csv("oil_price.csv")
-Gold_data <- read.csv("")
+DJI_data  <- read.csv(".DJI_Data.csv", header=TRUE)
+Oil_data  <- read_excel("Oil_Data.xlsx")
+Gold_data <- read_excel("Gold_Data.xlsx")
 
 data[[1]] <- as.Date(data[[1]], "%d/%m/%Y")
 
