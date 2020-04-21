@@ -14,6 +14,7 @@ library(dplyr)
 library(padr)
 library(oce)
 library(tseries)
+library(forecast)
 
 ###################################### PREPARING DATA ####################################################################
 
@@ -21,6 +22,7 @@ DJI_Data  <- read_excel("DJI_Data.xlsx")
 Oil_Data  <- read_excel("Oil_Data.xls")
 Gold_Data <- read_excel("Gold_Data.xlsx")
 
+#A faire tourner les 3 ad.Dates deux fois, la première fois donne une erreur timezone
 DJI_Data$Date  <- as.Date(DJI_Data$Date, "%Y-%m-%d")
 Oil_Data$Date  <- as.Date(Oil_Data$Date, "%Y-%m-%d")
 Gold_Data$Date <- as.Date(Gold_Data$Date,"%Y-%m-%d")
@@ -31,6 +33,7 @@ DJI_Data  <- DJI_Data  %>% pad()
 Oil_Data  <- Oil_Data  %>% pad()
 Gold_Data <- Gold_Data %>% pad()
 
+#interpolation linéaire entre les valeurs NA et leurs bornes
 DJI_Data$Close  <- fillGap(DJI_Data$Close,  method=c("linear"))
 Oil_Data$Close  <- fillGap(Oil_Data$Close,  method=c("linear"))
 Gold_Data$Close <- fillGap(Gold_Data$Close, method=c("linear"))
@@ -52,16 +55,36 @@ chartSeries(Gold)
 ######################################## ECONOMETRICS #################################################################
 
 ##DJI
-attach(DJI_Data)
 
 t      <- DJI_Data$Date
 Ydji   <- DJI_Data$Close
-#On remarque une claire tendance donc on fait la difference premiere
-D.Ydji <- diff(DJI_Data$Close)
-L.Ydji <-  log(DJI_Data$Close)
+#On remarque une claire tendance et hétéroscédasticité donc on fait la difference premiere
 
-adf.test(D.Ydji, k=0)
-adf.test(D.Ydji)
+L.Ydji <- log(DJI_Data$Close)
+DL.Ydji<- diff(L.Ydji)
+L.Ydji <- L.Ydji[-length(L.Ydji)]
+tdji   <- t[-length(t)]
+
+ggplot() + geom_line(aes(tdji, DL.Ydji))
+
+adf.test(Ydji, alternative="stationary", k=0)
+adf.test(Ydji, alternative="explosive", k=0)
+
+kpss.test(Ydji)
+#nous rejetons l'hypothèse alternative, donc nous avons pas de stationnarité, confirmé par le test de KPSS,
+#les 2 tests implique la présence d'une racine unitaire.
+
+acf(DL.Ydji)
+pacf(DL.Ydji)
+
+arima(DL.Ydji, order=c(1,0,0))
+arima(DL.Ydji, order=c(2,0,0))
+arima(DL.Ydji, order=c(0,0,1))
+arima(DL.Ydji, order=c(0,0,2))
+arima(DL.Ydji, order=c(1,0,1))
+arima(DL.Ydji, order=c(1,0,2))
+arima(DL.Ydji, order=c(2,0,1))
+arima(DL.Ydji, order=c(2,0,2))
 
 summary(Ydji)
 summary(D.Ydji)
@@ -69,6 +92,5 @@ summary(L.Ydji)
 
 plot(t,L.Ydji)
 
-acf(Ydji)
-pacf(Ydji)
+
 
