@@ -13,6 +13,9 @@ library(tsibble)
 library(dplyr)
 library(padr)
 library(oce)
+library(tseries)
+
+###################################### PREPARING DATA ####################################################################
 
 DJI_Data  <- read_excel("DJI_Data.xlsx")
 Oil_Data  <- read_excel("Oil_Data.xls")
@@ -45,3 +48,27 @@ Gold <- xts(x=Gold_Data$Close, order.by = Gold_Data$Date)
 chartSeries(DJI)
 chartSeries(Oil)
 chartSeries(Gold)
+
+######################################## ECONOMETRICS #################################################################
+
+##DJI
+attach(DJI_Data)
+
+t      <- DJI_Data$Date
+Ydji   <- DJI_Data$Close
+#On remarque une claire tendance donc on fait la difference premiere
+D.Ydji <- diff(DJI_Data$Close)
+L.Ydji <-  log(DJI_Data$Close)
+
+adf.test(D.Ydji, k=0)
+adf.test(D.Ydji)
+
+summary(Ydji)
+summary(D.Ydji)
+summary(L.Ydji)
+
+plot(t,L.Ydji)
+
+acf(Ydji)
+pacf(Ydji)
+
