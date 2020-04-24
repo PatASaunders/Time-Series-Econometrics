@@ -17,6 +17,8 @@ library(tseries)
 library(forecast)
 library(vars)
 library(aTSA)
+library(PerformanceAnalytics)
+library(Quandl)
 
 ###################################### PREPARING DATA ####################################################################
 
@@ -53,6 +55,11 @@ Gold <- xts(x=Gold_Data$Close, order.by = Gold_Data$Date)
 chartSeries(DJI)
 chartSeries(Oil)
 chartSeries(Gold)
+
+
+
+
+
 
 ######################################## ARMA #################################################################
 
@@ -110,6 +117,12 @@ arch.test(armaDJI)
 #Les résidus de notre processus générateur des rendements de notre séries ne sont pas un Bruit Blanc, il y a une structure
 #qui reste à modéliser dans les résidus de ce modèle.
 
+
+
+
+
+
+
 ####################################### UGARCH ###############################################
 
 rDJI  <- dailyReturn(log(DJI))
@@ -141,9 +154,31 @@ names(ugfit@fit)
 
 ugfit@fit$coef
 ug_var <- ugfit@fit$var
+ug_res <- ugfit@fit$residuals
 ug_res2 <- (ugfit@fit$residuals)^2
 
 ggplot() + geom_line(aes(t, ug_res2), color="black") + geom_line(aes(t, ug_var), color="red")
+
+ggplot() + geom_histogram(aes())
+
+hist(ugfit@fit$residuals, freq=FALSE)
+curve(dnorm(x, mean=0, sd = sqrt(var(ugfit@fit$residuals))), col="red", lwd=2, add=TRUE)
+
+VaR(rDJI, p=0.95, method="historical")
+
+
+
+########################################## VaR ################################################
+
+rDJ <- dailyReturn(DJI)
+rAU <- dailyReturn(Gold)
+rDJ <- dailyReturn(Oil)
+
+VaR(rDJ, p=0.95, method="historical")
+VaR(rDJ, p=0.99, method="historical")
+
+CVaR(rDJ, p=0.99, method="historical")
+
 
 
 
@@ -178,3 +213,15 @@ arima(DL.Ydji90, order=c(1,0,1))
 arima(DL.Ydji90, order=c(1,0,2))
 arima(DL.Ydji90, order=c(2,0,1))
 arima(DL.Ydji90, order=c(2,0,2))
+
+
+
+
+
+
+
+
+
+
+
+
