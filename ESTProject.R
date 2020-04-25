@@ -122,9 +122,7 @@ grid.arrange(p2_1 , p2_2 , ncol = 1)
 
 #Distribution de Student
 
-fitdist <- fitdist(distribution = 'std' , x = retsdji)
-
-qplot(retsdji, geom='density') + geom_density(fill='blue', alpha=0.4)
+fitdist(distribution = 'std' , x=retsdji)$pars
 
 curve(dt(x, 30), from=-5, to=5)
 
@@ -138,14 +136,18 @@ cat("For a = 0.05 the quantile value of normal distribution is: " ,
     "For a = 0.01 the quantile value of t-distribution is: " , 
     qdist(distribution = 'std' , shape = 2.820548816 , p = 0.01) , sep = "")
 
-varm = VaR(retsdji, p=0.99, clean=c("none", "boudt"), method="modified")
-varn
-varn = VaR(retsdji, p=0.99, clean=c("none", "boudt"), method="gaussian")
+vart = qdist(distribution='std', shape= 2.820548816, p=0.01)
+vart
+varm = VaR(retsdji, p=0.01, method="modified")
 varm
+varn = VaR(retsdji, p=0.99, method="gaussian")
+varn
+varh = VaR(retsdji, p=0.99, method="historical")
+varh
 
-model.roll = ugarchroll(spec=model.spec, data=retsdji, n.start = 8134-250)
+model.fc = ugarchforecast(model.fit, data=retsdji, n.ahead = 250, n.start = 7884)
 
-VaR95_td = mean(retsdji) + model.roll@forecast$density[,'Sigma']*varm[1]
+VaR95_td = mean(retsdji) + model.fc@forecast$sigmaFor*(-2.82)
 
 p = c()
 p[1] = pbinom(q = 0 , size = 250 , prob = 0.01)
@@ -159,5 +161,4 @@ qplot(y = p , x = 1:14 , geom = 'line') +
   theme_light()
 
 cat('Number of exceptions with GARCH approach: ' , (sum(retsdji[7885:8134] < VaR95_td)) , sep = '')
-
 
