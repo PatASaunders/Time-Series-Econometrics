@@ -10,7 +10,7 @@ library(gridExtra)
 library(PerformanceAnalytics)
 
 ############################################ NEW #########################################################################
-
+######################################### PREPA DONNEE ##################################################################
 DJI_Data  <- read_excel("DJI_Data.xlsx")
 Oil_Data  <- read_excel("Oil_Data.xls")
 Gold_Data <- read_excel("Gold_Data.xlsx")
@@ -45,6 +45,10 @@ pdji2 = qplot(retsdji , geom = 'density') + coord_flip() +
 
 grid.arrange(pdji1,pdji2, ncol=2)
 
+
+#########################################  STATIONNARITE ######################################################
+
+
 #rlang::last_error()
 
 #nous testons la non-stationnarité où l'hypothèse H0 indique une non-stationnarité
@@ -52,6 +56,10 @@ adf.test(retsdji)
 #nous retrouvons une p-value < 0.01, donc la série est stationnaire
 
 #Nous avons une série stationnaire donc nous pouvons passer par la méthodologie de Box-Jenkins
+
+
+###################################### ARIMA ESTIMATION #########################################################
+
 
 model.arima = auto.arima(retsdji, max.order = c(5,0,5), stationary=TRUE, trace=T, ic='aic')
 
@@ -61,7 +69,9 @@ model.arima
 
 #rt = 0.0909*r(t-1) + et + 0.1735e(t-1)   A VERIFIER!!!!!!!!!
 
-#Testons si les résidus sont bien un bruit blanc.
+
+################################ TESTS DE NORMALITE DES RESIDUS #####################################################
+
 
 model.arima$residuals %>% ggtsdisplay(plot.type='hist', lag.max=14)
 
@@ -72,13 +82,16 @@ model.arima$residuals %>% ggtsdisplay(plot.type='hist', lag.max=14)
 #à un test de Ljung-Box
 
 ar.res = model.arima$residuals
+
 Box.test(model.arima$residuals, lag=14, fitdf=2, type = 'Ljung-Box')
 
 #Nous rejetons H0: Pas d'autocorrélation, il y a de l'autocorrélations dans les résidus de notre modèle ARIMA
 
-#GARCH
 
-tsdisplay(ar.res, main='Squared Residuals')
+###################################### GARCH ESTIMATION #############################################################
+
+
+tsdisplay(ar.res, main='Residuals')
 
 model.spec = ugarchspec(variance.model = list(model='sGARCH', garchOrder = c(1,1)),
                         mean.model=list(armaOrder=c(0,0)))
@@ -120,34 +133,13 @@ p2_2 = qplot(retsdji , geom = 'density') + geom_density(fill = 'blue' , alpha = 
 
 grid.arrange(p2_1 , p2_2 , ncol = 1)
 
-#Distribution de Student
 
-fitdist(distribution = 'std' , x=retsdji)$pars
-
-curve(dt(x, 30), from=-5, to=5)
+########################################## GARCH FORECAST ###################################################
 
 
-cat("For a = 0.05 the quantile value of normal distribution is: " , 
-    qnorm(p = 0.05) , "\n" ,
-    "For a = 0.05 the quantile value of t-distribution is: " ,
-    qdist(distribution = 'std' , shape = 2.820548816 , p = 0.05) , "\n" , "\n" , 
-    'For a = 0.01 the quantile value of normal distribution is: ' , 
-    qnorm(p = 0.01) , "\n" , 
-    "For a = 0.01 the quantile value of t-distribution is: " , 
-    qdist(distribution = 'std' , shape = 2.820548816 , p = 0.01) , sep = "")
+model.fc = ugarchforecast(model.fit, data=retsdji, n.ahead = 8134-6500, n.start = 6500)
 
-vart = qdist(distribution='std', shape= 2.820548816, p=0.01)
-vart
-varm = VaR(retsdji, p=0.01, method="modified")
-varm
-varn = VaR(retsdji, p=0.99, method="gaussian")
-varn
-varh = VaR(retsdji, p=0.99, method="historical")
-varh
-
-model.fc = ugarchforecast(model.fit, data=retsdji, n.ahead = 250, n.start = 7884)
-
-VaR95_td = mean(retsdji) + model.fc@forecast$sigmaFor*(-2.82)
+VaR95_td = mean(retsdji) + model.fc@forecast$sigmaFor*(-3)
 
 p = c()
 p[1] = pbinom(q = 0 , size = 250 , prob = 0.01)
@@ -160,5 +152,23 @@ qplot(y = p , x = 1:14 , geom = 'line') +
   labs(y = 'Probability' , x = 'Number of Exceptions') + 
   theme_light()
 
-cat('Number of exceptions with GARCH approach: ' , (sum(retsdji[7885:8134] < VaR95_td)) , sep = '')
+cat('Number of exceptions with GARCH approach: ' , (sum(retsdji[6501:8134] < VaR95_td)) , sep = '')
+
+qplot(y = VaR95_td , x = 6501:8134 , geom = 'line') +
+  geom_point(aes(x = 6501:8134 , y = retsdji[6501:8134] , color = as.factor(retsdji[6501:8134] < VaR95_td)) , size = 2) + scale_color_manual(values = c('gray' , 'red')) + 
+  labs(y = 'Daily Returns' , x = 'Test set Observation') + theme_light() + 
+  theme(legend.position = 'none')
+
+
+########################################## ROLLING FORECAST #############################################################
+
+
+model.roll = ugarchroll(spec = model.spec , data = retsdji , n.start = 758 , refit.every = 50 ,
+                        refit.window = 'moving')
+VaR95_roll = mean(retsdji) + model.roll@forecast$density[,'Sigma']*(-3)
+
+qplot(y = VaR95_roll , x = 759:8134 , geom = 'line') +
+  geom_point(aes(x = 759:8134 , y = retsdji[759:8134] , color = as.factor(retsdji[759:8134] < VaR95_roll)) , size = 2) + scale_color_manual(values = c('gray' , 'red')) + 
+  labs(y = 'Daily Returns' , x = 'Test set Observation') + theme_light() + 
+  theme(legend.position = 'none')
 
