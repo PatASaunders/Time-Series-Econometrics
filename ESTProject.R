@@ -273,6 +273,8 @@ qplot(y = p , x = 1:14 , geom = 'line') +
   theme_light()
 
 cat('Number of exceptions with GARCH approach: ' , (sum(retsdji[3135:8134] < VaR95_td_dji)) , sep = '')
+cat('Number of exceptions with GARCH approach: ' , (sum(retsoil[3194:8193] < VaR95_td_oil)) , sep = '')
+cat('Number of exceptions with GARCH approach: ' , (sum(retsgold[3421:8420] < VaR95_td_gold)) , sep = '')
 
 qplot(y = VaR95_td_dji , x = 3135:8134 , geom = 'line') +
   geom_point(aes(x = 3135:8134 , y = retsdji[3135:8134] , color = as.factor(retsdji[3135:8134] < VaR95_td_dji)) , size = 1) + scale_color_manual(values = c('gray' , 'red')) + 
