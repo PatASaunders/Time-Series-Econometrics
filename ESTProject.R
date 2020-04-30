@@ -25,8 +25,13 @@ DJI_Data$Close  <- fillGap(DJI_Data$Close,  method=c("linear"))
 Oil_Data$Close  <- fillGap(Oil_Data$Close,  method=c("linear"))
 Gold_Data$Close <- fillGap(Gold_Data$Close, method=c("linear"))
 
+
 qplot(x = DJI_Data$Date, y = DJI_Data$'Adj Close', geom='line') + geom_line(color='dark blue') +
-  labs(x='Year', y='Dow Jones Industrial Index') + geom_hline(yintercept = mean(DJI_Data$'Adj Close'), color='red')
+  labs(x='Year', y='Dow Jones Industrial Index') + geom_hline(yintercept = mean(DJI_Data$'Adj Close'), color='red') +
+  annotate("rect", xmin = as.POSIXct('2009-04-01'), xmax = as.POSIXct('2010-08-10'), ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = as.POSIXct('2019-12-01'), xmax = as.POSIXct('2020-04-10'), ymin = -Inf, ymax = Inf,
+           alpha = .2)
 
 qplot(x = Oil_Data$Date, y = Oil_Data$'Close', geom='line') + geom_line(color='dark blue') +
   labs(x='Year', y='Oil') + geom_hline(yintercept = mean(Oil_Data$'Close'), color='red')
@@ -279,17 +284,35 @@ cat('Number of exceptions with GARCH approach: ' , (sum(retsgold[3421:8420] < Va
 qplot(y = VaR95_td_dji , x = 3135:8134 , geom = 'line') +
   geom_point(aes(x = 3135:8134 , y = retsdji[3135:8134] , color = as.factor(retsdji[3135:8134] < VaR95_td_dji)) , size = 1) + scale_color_manual(values = c('gray' , 'red')) + 
   labs(y = 'Daily Returns' , x = 'Test set Observation') + theme_light() + 
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  annotate("rect", xmin = 7826, xmax = 8134, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 5689, xmax = 6452, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 3930, xmax = 4226, ymin = -Inf, ymax = Inf,
+           alpha = .2)
 
 qplot(y = VaR95_td_oil , x = 3194:8193 , geom = 'line') +
   geom_point(aes(x = 3194:8193 , y = retsoil[3194:8193] , color = as.factor(retsoil[3194:8193] < VaR95_td_oil)) , size = 1) + scale_color_manual(values = c('gray' , 'red')) + 
   labs(y = 'Daily Returns' , x = 'Test set Observation') + theme_light() + 
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  annotate("rect", xmin = 7785, xmax = 8193, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 5748, xmax = 6511, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 3989, xmax = 4485, ymin = -Inf, ymax = Inf,
+           alpha = .2)
 
 qplot(y = VaR95_td_gold , x = 3421:8420 , geom = 'line') +
   geom_point(aes(x = 3421:8420 , y = retsgold[3421:8420] , color = as.factor(retsgold[3421:8420] < VaR95_td_gold)) , size = 1) + scale_color_manual(values = c('gray' , 'red')) + 
   labs(y = 'Daily Returns' , x = 'Test set Observation') + theme_light() + 
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  annotate("rect", xmin = 8112, xmax = 8420, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 5975, xmax = 6738, ymin = -Inf, ymax = Inf,
+           alpha = .2) +
+  annotate("rect", xmin = 4216, xmax = 4712, ymin = -Inf, ymax = Inf,
+           alpha = .2)
 
 ########################################## ROLLING FORECAST #############################################################
 
